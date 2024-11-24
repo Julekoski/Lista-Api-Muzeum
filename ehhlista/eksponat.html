@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muzeum Sztuki</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Stylizacja głównej sekcji */
+    #main-item {
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    #main-item img {
+      border-radius: 10px;
+      max-height: 300px;
+      object-fit: cover;
+    }
+
+    /* Stylizacja sekcji Galeria i Podobne Eksponaty */
+    .gallery-section {
+      background-color: #202020;
+      color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .gallery-section h3 {
+      margin-bottom: 20px;
+    }
+    .gallery-section .card {
+      background-color: #fff;
+      border: none;
+      color: #000;
+    }
+    .gallery-section .card img {
+      height: 150px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    .card-body {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header class="bg-light py-3 mb-4">
+    <div class="container d-flex justify-content-between align-items-center">
+      <h1 class="h4">Muzeum Sztuki</h1>
+      <nav>
+        <a href="#" class="me-3">Strona główna</a>
+        <a href="#">O nas</a>
+        <a href="#">Zbiory</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Główna sekcja eksponatu -->
+    <section id="main-item" class="mb-5">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <img id="main-item-image" src="" alt="Eksponat" class="img-fluid">
+        </div>
+        <div class="col-md-6">
+          <h2 id="main-item-title"></h2>
+          <p id="main-item-description"></p>
+          <div id="main-item-tags" class="d-flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Galeria -->
+    <section id="gallery" class="gallery-section mb-5">
+      <h3 class="fs-4">Galeria</h3>
+      <div class="row row-cols-1 row-cols-md-4 g-4" id="gallery-items"></div>
+    </section>
+
+    <!-- Podobne eksponaty -->
+    <section id="similar-items" class="gallery-section">
+      <h3 class="fs-4">Podobne eksponaty</h3>
+      <div class="row row-cols-1 row-cols-md-4 g-4" id="similar-items-list"></div>
+    </section>
+  </main>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API_URL = "https://collectionapi.metmuseum.org/public/collection/v1";
+
+    async function fetchRandomItems(count) {
+      const response = await fetch(`${API_URL}/objects?metadataDate=2022-01-01`);
+      const data = await response.json();
+      const objectIDs = data.objectIDs.sort(() => 0.5 - Math.random()).slice(0, count);
+      const items = await Promise.all(objectIDs.map(id => fetchItemDetails(id)));
+      return items.filter(item => item !== null);
+    }
+
+    async function fetchItemDetails(id) {
+      try {
+        const response = await fetch(`${API_URL}/objects/${id}`);
+        const data = await response.json();
+        if (!data || !data.primaryImageSmall) return null; // Pomijanie elementów bez obrazów
+        return {
+          title: data.title,
+          image: data.primaryImageSmall,
+          description: data.objectDate || "Brak opisu",
+          tags: [data.artistDisplayName, data.objectDate, data.objectName].filter(Boolean)
+        };
+      } catch (error) {
+        console.error(`Error fetching item with ID ${id}:`, error);
+        return null;
+      }
+    }
+
+    async function displayMainItem() {
+      const items = await fetchRandomItems(1);
+      if (items.length > 0) {
+        const item = items[0];
+        document.getElementById("main-item-image").src = item.image;
+        document.getElementById("main-item-title").textContent = item.title;
+        document.getElementById("main-item-description").textContent = item.description;
+        const tagsContainer = document.getElementById("main-item-tags");
+        tagsContainer.innerHTML = "";
+        item.tags.forEach(tag => {
+          const tagElement = document.createElement("span");
+          tagElement.className = "badge bg-secondary";
+          tagElement.textContent = tag;
+          tagsContainer.appendChild(tagElement);
+        });
+      }
+    }
+
+    async function displayGallery() {
+      const items = await fetchRandomItems(4);
+      const galleryContainer = document.getElementById("gallery-items");
+      galleryContainer.innerHTML = "";
+      items.forEach(item => {
+        galleryContainer.innerHTML += `
+          <div class="col">
+            <div class="card">
+              <img src="${item.image}" alt="${item.title}" class="card-img-top">
+              <div class="card-body">
+                <h5 class="card-title">${item.title}</h5>
+                <p class="card-text">${item.description}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function displaySimilarItems() {
+      const items = await fetchRandomItems(4);
+      const similarItemsContainer = document.getElementById("similar-items-list");
+      similarItemsContainer.innerHTML = "";
+      items.forEach(item => {
+        similarItemsContainer.innerHTML += `
+          <div class="col">
+            <div class="card">
+              <img src="${item.image}" alt="${item.title}" class="card-img-top">
+              <div class="card-body">
+                <h5 class="card-title">${item.title}</h5>
+                <p class="card-text">${item.description}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Wywoływanie funkcji podczas ładowania strony
+    displayMainItem();
+    displayGallery();
+    displaySimilarItems();
+  </script>
+</body>
+</html>
