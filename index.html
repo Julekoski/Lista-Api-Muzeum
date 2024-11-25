@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Met Museum</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <style>
+    /* Style ogólne */
+    :root {
+      --bg-color: white;
+      --text-color: black;
+    }
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .hero {
+      background-image: url('tlo2.png');
+      background-size: cover;
+      background-position: center;
+      text-align: center;
+      padding: 80px 20px;
+      color: white;
+      height: 100vh;
+      padding-top: 240px;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      text-align: center;
+    }
+
+    .card img {
+      height: 400px;
+      object-fit: cover;
+    }
+
+    .content-item img {
+      height: 200px;
+      width: 200px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    .theme-toggle {
+      cursor: pointer;
+    }
+
+    /* Wysuwana belka menu */
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--bg-color);
+      width: 100%;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+    }
+
+    .dropdown-menu a {
+      padding: 10px 20px;
+      display: block;
+      color: var(--text-color);
+      text-decoration: none;
+    }
+
+    .dropdown-menu a:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .dropdown:hover .dropdown-menu {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Zbiory tematyczne - dostosowanie stylów do motywu */
+.content-item {
+  background-color: var(--bg-color); 
+  color: var(--text-color); 
+  border: 1px solid rgba(0, 0, 0, 0.1); 
+}
+
+.content-item img {
+  border: 2px solid var(--text-color); 
+}
+
+.content-item h5, .content-item p {
+  color: black !important; /* Stały czarny kolor */
+}
+}
+
+.content-item button {
+  color: var(--bg-color); 
+  background-color: var(--text-color); 
+  border: none;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.content-item button:hover {
+  background-color: var(--bg-color); /* Odwrotność kolorów na hover */
+  color: var(--text-color);
+}
+
+
+   
+  </style>
+</head>
+<body>
+
+  <body data-theme="light">
+
+  <!-- Header -->
+  <header class="py-3 bg-dark text-white fixed-top">
+    <div class="container d-flex justify-content-between align-items-center">
+      <h4>The Met Museum</h4>
+      <nav class="d-flex align-items-center">
+        <div class="dropdown position-relative">
+          <a class="nav-link text-white me-3">Menu</a>
+          <div class="dropdown-menu">
+            <a href="#hero">Strona główna</a>
+            <a href="#popularne-dziela">Popularne dzieła</a>
+            <a href="#zbiory">Zbiory tematyczne</a>
+            <a href="zbiory.html">Kolekcje muzealne</a>
+          </div>
+        </div>
+        <div class="theme-toggle text-white">
+          🌙 Zmień motyw
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+
+    <div id="toggle-element" class="alert alert-info mt-3">
+      Jestem widoczny! Możesz mnie ukryć lub pokazać naciskając klawisz H.
+    </div>
+    
+    <img src="logo.svg"The Met Museum" class="logo">
+
+    
+    <p>Największy na świecie zbiór starożytnych rzeźb, fotografii, książek i nie tylko!</p>
+    <div class="search-bar mt-3">
+      <input type="text" id="searchInput" class="form-control w-50 mx-auto" placeholder="Wyszukaj przedmiot">
+    </div>
+  </section>
+
+    <section class="container mt-5" id="popularne-dziela">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="section-title">Popularne dzieła</h2>
+      <button id="refreshArtworks" class="btn btn-secondary">Odśwież dzieła</button>
+    </div>
+    <div class="row" id="artworksContainer">
+      <!-- Karty z dziełami -->
+    </div>
+  </section>
+      
+    </div>
+  </section>
+
+  <!-- Zbiory tematyczne -->
+  <section class="container my-5" id="zbiory">
+    <h2 class="section-title">Zbiory tematyczne</h2>
+    <div id="collectionsContainer">
+    </div>
+  </section>
+
+  <script>
+
+ // Funkcja obsługująca ukrywanie/wyświetlanie elementu
+ document.addEventListener('keydown', (event) => {
+    if (event.key === 'h' || event.key === 'H') { // Sprawdza, czy naciśnięto klawisz H
+      const toggleElement = document.getElementById('toggle-element');
+      if (toggleElement) {
+        // Przełączanie widoczności elementu
+        if (toggleElement.style.display === 'none') {
+          toggleElement.style.display = 'block';
+        } else {
+          toggleElement.style.display = 'none';
+        }
+      }
+    }
+  });
+
+
+    // Funkcja do pobierania losowych dzieł sztuki z API
+    async function fetchArtworks() {
+      const artworksContainer = document.getElementById('artworksContainer');
+      artworksContainer.innerHTML = '<p>Wczytywanie dzieł...</p>'; // Tymczasowy komunikat
+
+      try {
+        const response = await fetch('https://collectionapi.metmuseum.org/public/collection/v1/objects?departmentIds=11');
+        const data = await response.json();
+
+        // Pobieranie 6 losowych ID dzieł
+        const randomIds = data.objectIDs.sort(() => 0.5 - Math.random()).slice(0, 9);
+
+        // Pobranie szczegółowych danych dla każdego ID
+        const artworkPromises = randomIds.map(async (id) => {
+          const artworkResponse = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
+          return artworkResponse.json();
+        });
+
+        const artworks = await Promise.all(artworkPromises);
+
+        // Renderowanie kart dzieł
+        artworksContainer.innerHTML = artworks.map((artwork) => `
+          <div class="col-md-4 mb-4">
+            <div class="card">
+              <img src="${artwork.primaryImageSmall || 'https://via.placeholder.com/300'}" class="card-img-top" alt="${artwork.title}">
+              <div class="card-body">
+                <h5 class="card-title">${artwork.title || 'Nieznane dzieło'}</h5>
+                <p class="card-text">${artwork.artistDisplayName || 'Autor nieznany'}</p>
+                <span class="badge bg-secondary">${artwork.objectDate || 'Data nieznana'}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        artworksContainer.innerHTML = '<p>Błąd podczas ładowania danych z API.</p>';
+        console.error('Błąd podczas pobierania dzieł:', error);
+      }
+    }
+
+    // Funkcja do pobierania danych o kolekcjach
+function fetchCollections() {
+  const collectionsContainer = document.getElementById('collectionsContainer');
+  collectionsContainer.innerHTML = '<p>Wczytywanie kolekcji...</p>';
+
+  
+
+  // Dane przykładowe (można je zastąpić pobieraniem dynamicznych danych z API)
+  const collections = [
+    {
+      title: 'Zbiory europejskie',
+      image: 'https://via.placeholder.com/200x200?text=Europejskie',
+      description: 'Opis kolekcji europejskiej... Odkryj dzieła sztuki europejskiej.',
+    },
+    {
+      title: 'Zbiory azjatyckie',
+      image: 'https://via.placeholder.com/200x200?text=Azjatyckie',
+      description: 'Opis kolekcji azjatyckiej... Poznaj niezwykłe dziedzictwo Azji.',
+    },
+    {
+      title: 'Zbiory amerykańskie',
+      image: 'https://via.placeholder.com/200x200?text=Amerykańskie',
+      description: 'Opis kolekcji amerykańskiej... Zanurz się w kulturze Ameryki.',
+    },
+  ];
+
+  // Renderowanie kolekcji
+  collectionsContainer.innerHTML = collections
+    .map(
+      (collection) => `
+      <div class="content-item d-flex mb-4 p-3 bg-light rounded">
+        <img src="${collection.image}" alt="${collection.title}" style="height: 200px; width: 200px; object-fit: cover; border-radius: 5px;">
+        <div class="ms-3">
+          <h5>${collection.title}</h5>
+          <p>${collection.description}</p>
+          <button class="btn btn-dark">Zobacz więcej</button>
+        </div>
+      </div>
+    `
+    )
+    .join('');
+}
+
+    // Event Listener dla przycisku "Odśwież dzieła"
+    document.getElementById('refreshArtworks').addEventListener('click', fetchArtworks);
+
+    // Inicjalizacja
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchArtworks();
+      fetchCollections();
+    });
+
+// Funkcja do pobierania kolekcji tematycznych z API
+async function fetchCollectionsFromAPI() {
+  const collectionsContainer = document.getElementById('collectionsContainer');
+  collectionsContainer.innerHTML = '<p>Wczytywanie kolekcji...</p>';
+
+  try {
+    // Pobieramy dane dla wybranych kolekcji
+    const response = await fetch('https://collectionapi.metmuseum.org/public/collection/v1/objects?departmentIds=11'); // Zmiana ID na odpowiedni dział
+    const data = await response.json();
+
+    // Pobieramy 3 losowe ID obiektów dla kolekcji tematycznych
+    const randomIds = data.objectIDs.sort(() => 0.5 - Math.random()).slice(0, 6);
+
+    // Pobieramy szczegóły dla każdego z obiektów
+    const collectionPromises = randomIds.map(async (id) => {
+      const collectionResponse = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
+      return collectionResponse.json();
+    });
+
+    const collections = await Promise.all(collectionPromises);
+
+    // Renderowanie kolekcji w sekcji
+    collectionsContainer.innerHTML = collections
+      .map(
+        (collection) => `
+        <div class="content-item d-flex mb-4 p-3 bg-light rounded">
+          <img src="${collection.primaryImageSmall || 'https://via.placeholder.com/200x200?text=Brak+obrazu'}" 
+               alt="${collection.title || 'Nieznany tytuł'}" 
+               style="height: 200px; width: 200px; object-fit: cover; border-radius: 5px;">
+          <div class="ms-3">
+            <h5>${collection.title || 'Nieznany tytuł'}</h5>
+            <p>${collection.artistDisplayName || 'Autor nieznany'} - ${collection.objectDate || 'Data nieznana'}</p>
+            <button class="btn btn-secondary">Zobacz więcej</button>
+          </div>
+        </div>
+      `
+      )
+      .join('');
+  } catch (error) {
+    collectionsContainer.innerHTML = '<p>Błąd podczas ładowania kolekcji z API.</p>';
+    console.error('Błąd podczas pobierania kolekcji:', error);
+  }
+}
+
+// Wywołanie funkcji po załadowaniu strony
+document.addEventListener('DOMContentLoaded', () => {
+  fetchCollectionsFromAPI();
+});
+
+
+
+
+    // Funkcja przełączania trybu ciemnego i jasnego
+
+
+    
+function toggleDarkMode() {
+  const currentTheme = document.body.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+  // Przełącz atrybut data-theme
+  document.body.setAttribute('data-theme', newTheme);
+
+  // Zapisanie aktualnego motywu w localStorage
+  localStorage.setItem('theme', newTheme);
+}
+
+// Sprawdzanie trybu po załadowaniu strony
+document.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.body.setAttribute('data-theme', savedTheme);
+});
+
+// Event Listener dla przycisku przełączania trybu
+document.querySelector('.theme-toggle').addEventListener('click', toggleDarkMode);
+
+
+
+
+
+    
+  </script>
+</body>
+</html>
