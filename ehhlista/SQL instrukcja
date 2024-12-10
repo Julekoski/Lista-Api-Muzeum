@@ -1,0 +1,32 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+# Tworzymy aplikację Flask
+app = Flask(__name__)
+
+# Konfiguracja bazy danych SQLite
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///students.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Inicjalizacja obiektu SQLAlchemy
+db = SQLAlchemy(app)
+
+# Definicja modelu Students
+class Student(db.Model):
+    id = db.Column(db.Integer, primary_key=True)  # Klucz główny
+    name = db.Column(db.String(50), nullable=False)  # Imię studenta
+    surname = db.Column(db.String(50), nullable=False)  # Nazwisko studenta
+    age = db.Column(db.Integer, nullable=False)  # Wiek studenta
+    grade = db.Column(db.Float, nullable=False)  # Ocena studenta
+
+    def __repr__(self):
+        return f"<Student {self.name} {self.surname}, Grade: {self.grade}>"
+
+# Tworzenie tabeli w bazie danych
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
+# Uruchomienie aplikacji
+if __name__ == '__main__':
+    app.run(debug=True)
